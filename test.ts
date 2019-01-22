@@ -1,35 +1,32 @@
 import request from "supertest";
 import assert from "assert";
-import { app, router } from "./authentication";
+import { app as app_authenticate, router as router_authenticate } from "./authentication";
+import { app as app_authorization, router as router_authorization } from "./authorization";
 
 describe("Check token authorization", () => {
   before(async () => {
-    app.use(router());
+    app_authenticate.use(router_authenticate());
+    app_authorization.use(router_authorization());
   });
 
-  it("Verify jwt when passed valid secret", async () => {
-    const response = await request(app)
+  it("Verify jwt", async () => {
+    const response = await request(app_authenticate)
       .post("/authentication")
       .send({
         clientID: "some_id",
         secret: "some_secret"
       })
       .expect("content-type", /json/)
+      .expect(201)
+
+    assert(response.body.access_token);
+
+    const response_authorization = await request(app_authorization)
+      .get("/authorization")
+      .set("Authorization", `Bearer ${response.body.access_token}`)
+      .expect("content-type", /json/)
       .expect(200)
 
-    assert.deepEqual(response.body, "Private info");
-  })
-
-  it("Verify jwt when passed not valid secret", async () => {
-    const response = await request(app)
-      .post("/authentication")
-      .send({
-        clientID: "some_id",
-        secret: "not_valid_secret"
-      })
-      .expect("content-type", /json/)
-      .expect(401)
-
-    assert.deepEqual(response.body, "Unauthorized");
+    assert.deepEqual(response_authorization.body, "Access is allowed");
   })
 });

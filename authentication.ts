@@ -1,30 +1,25 @@
-import { NextFunction, Request, Response } from "express";
+import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import bodyParser from "body-parser";
 import express = require("express");
-import { authorization } from "./authorization";
+import dotenv from "dotenv";
 
 export const router = () => {
   const apiRouter = express.Router();
 
-  apiRouter.post("/authentication", (req: Request, res: Response, next: NextFunction) => {
+  apiRouter.post("/authentication", (req: Request, res: Response) => {
     try {
       if (!req.body.clientID || !req.body.secret) {
         throw new Error("Unauthorized");
       }
-      const payload = req.body.clientID;
 
-      const token = jwt.sign(payload, req.body.secret);
+      dotenv.config();
+      const token = jwt.sign("Its works", process.env.SECRET!);
 
-      if (token) {
-        const privateInfo = authorization(token);
-        if (!privateInfo) {
-          throw new Error("Unauthorized")
-        }
-        res.status(200).json(privateInfo)
-      }
+      res.status(201).json({ access_token: token });
+
     } catch (err) {
-      res.status(401).json(err.message)
+      res.status(err.status).json(err.message)
     }
   });
 
