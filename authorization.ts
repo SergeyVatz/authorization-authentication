@@ -10,15 +10,11 @@ export const router = () => {
 
   apiRouter.get("/authorization", (req: Request, res: Response) => {
     try {
-      if (!req.headers.authorization) {
+      if (!req.headers.authorization || req.headers.authorization.split(" ")[0] !== "Bearer") {
         throw new Error("Unauthorized");
       }
 
-      let bearer = null;
-      if (req.headers.authorization.split(" ")[0] === "Bearer") {
-        bearer = req.headers.authorization.split(" ")[1];
-        jwt.verify(bearer!, process.env.SECRET!);
-      }
+      jwt.verify(req.headers.authorization.split(" ")[1], process.env.SECRET!);
       
       res.json("Access is allowed");
 
