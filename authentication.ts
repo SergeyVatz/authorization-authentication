@@ -4,17 +4,18 @@ import bodyParser from "body-parser";
 import express = require("express");
 import dotenv from "dotenv";
 
+dotenv.config();
+
 export const router = () => {
   const apiRouter = express.Router();
 
   apiRouter.post("/authentication", (req: Request, res: Response) => {
-    try {
+    try { 
       if (!req.body.clientID || !req.body.secret) {
         throw new Error("Unauthorized");
       }
 
-      dotenv.config();
-      const token = jwt.sign("Its works", process.env.SECRET!);
+      const token = jwt.sign({ payload: "Its works" }, process.env.SECRET!);
 
       res.status(201).json({ access_token: token });
 

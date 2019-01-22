@@ -3,6 +3,8 @@ import express from "express";
 import { Request, Response} from "express";
 import dotenv from "dotenv";
 
+dotenv.config();
+
 export const router = () => {
   const apiRouter = express.Router();
 
@@ -12,9 +14,12 @@ export const router = () => {
         throw new Error("Unauthorized");
       }
 
-      dotenv.config();
-      jwt.verify(req.headers.authorization.split(" ")[0] === "Bearer" ? req.headers.authorization.split(" ")[1] : "", process.env.SECRET!);
-
+      let bearer = null;
+      if (req.headers.authorization.split(" ")[0] === "Bearer") {
+        bearer = req.headers.authorization.split(" ")[1];
+        jwt.verify(bearer!, process.env.SECRET!);
+      }
+      
       res.json("Access is allowed");
 
     } catch (err) {
